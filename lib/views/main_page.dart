@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import 'widgets/wifi_qr_modal.dart';
@@ -16,7 +20,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final ImagePicker _picker = ImagePicker();
-  XFile? _image;
+  File? _image;
   String? wifiSsid;
   String? wifiPassword;
 
@@ -42,7 +46,23 @@ class _MainPageState extends State<MainPage> {
                   child: ElevatedButton.icon(
                     icon: Icon(Icons.camera),
                     label: Text('Wi-Fi 촬영하기'),
-                    onPressed: _pickImage,
+                    onPressed: () async{
+                      _pickImage();
+                      const STATUS_OK = 200;
+                      var url = 'http://211.104.118.60:10301/ocr_image/';
+                      var response = await http.post(
+                        Uri.parse(url),
+                        headers: {'Content-Type': "image/jpg"},
+                        body: _image!.readAsBytesSync(),
+                      );
+                      if (response.statusCode == STATUS_OK){
+                        var data = json.decode(response.body);
+                        setState((){
+                          wifiSsid = data['id'];
+                          wifiPassword = data['pw'];
+                        });
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       textStyle: const TextStyle(fontSize: 20)
                     ),
@@ -74,8 +94,8 @@ class _MainPageState extends State<MainPage> {
 
   Future<void> _pickImage() async {
     var image = await _picker.pickImage(source: ImageSource.camera);
-    setState(() {
-      _image = image;
+    setState((){
+      _image = File(image!.path);
     });
   }
 
