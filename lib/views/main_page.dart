@@ -99,7 +99,10 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<void> _pickImage() async {
-    var image = await _picker.pickImage(source: ImageSource.camera);
+    var image = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50
+    );
     setState((){
       _image = File(image!.path);
     });
