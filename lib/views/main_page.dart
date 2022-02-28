@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 import 'widgets/wifi_qr_modal.dart';
 import 'widgets/wifi_status.dart';
@@ -28,67 +29,72 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset : false,
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            WifiStatus(ssid: wifiSsid, pw: wifiPassword),
-            Column(
-              children: [
-                SizedBox(
-                  width: 250,
-                  height: 100,
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.camera),
-                    label: Text('Wi-Fi 촬영하기'),
-                    onPressed: () async{
-                      await _pickImage();
-                      const STATUS_OK = 200;
-                      var url = 'http://211.104.118.60:10301/ocr_image/';
-                      var response = await http.post(
-                        Uri.parse(url),
-                        headers: {'Content-Type': "image/jpg"},
-                        body: _image!.readAsBytesSync(),
-                      );
-                      if (response.statusCode == STATUS_OK){
-                        var data = json.decode(response.body);
-                        setState((){
-                          wifiSsid = data['id'];
-                          wifiPassword = data['pw'];
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 20)
+    return LoaderOverlay(
+      child: Scaffold(
+        resizeToAvoidBottomInset : false,
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              WifiStatus(ssid: wifiSsid, pw: wifiPassword),
+              Column(
+                children: [
+                  SizedBox(
+                    width: 250,
+                    height: 100,
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons.camera),
+                      label: Text('Wi-Fi 촬영하기'),
+                      onPressed: () async{
+                        await _pickImage();
+                        const STATUS_OK = 200;
+                        var url = 'http://211.104.118.60:10301/ocr_image/';
+
+                        context.loaderOverlay.show();
+                        var response = await http.post(
+                          Uri.parse(url),
+                          headers: {'Content-Type': "image/jpg"},
+                          body: _image!.readAsBytesSync(),
+                        );
+                        context.loaderOverlay.hide();
+                        if (response.statusCode == STATUS_OK){
+                          var data = json.decode(response.body);
+                          setState((){
+                            wifiSsid = data['id'];
+                            wifiPassword = data['pw'];
+                          });
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        textStyle: const TextStyle(fontSize: 20)
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                SizedBox(
-                  width: 250,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.qr_code),
-                    label: Text('QR로 공유하기'),
-                    onPressed: () => handleQrButton(context),
-                    style: ElevatedButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 20)
+                  SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: 250,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons.qr_code),
+                      label: Text('QR로 공유하기'),
+                      onPressed: () => handleQrButton(context),
+                      style: ElevatedButton.styleFrom(
+                        textStyle: const TextStyle(fontSize: 20)
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 50.0),
-              ],
-            )
-          ],
-        )
-      ),
+                  SizedBox(height: 50.0),
+                ],
+              )
+            ],
+          )
+        ),
+      )
     );
   }
 
