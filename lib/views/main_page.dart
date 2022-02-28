@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:image_picker/image_picker.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key, required this.title}) : super(key: key);
@@ -13,10 +13,11 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final ImagePicker _picker = ImagePicker();
+  XFile? _image;
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -60,7 +61,7 @@ class _MainPageState extends State<MainPage> {
                   child: ElevatedButton.icon(
                     icon: Icon(Icons.camera),
                     label: Text('Wi-Fi 촬영하기'),
-                    onPressed: () {},
+                    onPressed: _pickImage,
                     style: ElevatedButton.styleFrom(
                       textStyle: const TextStyle(fontSize: 20)
                     ),
@@ -88,5 +89,12 @@ class _MainPageState extends State<MainPage> {
         )
       ),
     );
+  }
+
+  Future<void> _pickImage() async{
+    var image = await _picker.pickImage(source: ImageSource.camera);
+    setState((){
+      _image = image;
+    });
   }
 }
