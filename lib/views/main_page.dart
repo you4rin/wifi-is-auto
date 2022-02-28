@@ -47,7 +47,7 @@ class _MainPageState extends State<MainPage> {
                     icon: Icon(Icons.camera),
                     label: Text('Wi-Fi 촬영하기'),
                     onPressed: () async{
-                      _pickImage();
+                      await _pickImage();
                       const STATUS_OK = 200;
                       var url = 'http://211.104.118.60:10301/ocr_image/';
                       var response = await http.post(
